@@ -5,6 +5,7 @@ import { Hono } from "hono";
 // import { TaskFetch } from "./endpoints/taskFetch";
 // import { TaskList } from "./endpoints/taskList";
 import { ReviewSession } from "./reviewSession";
+import { env } from "hono/adapter";
 
 export { ReviewSession };
 
@@ -75,6 +76,30 @@ openapi.post("/api/review", async (c) => {
 
 	return c.json({ result: output });
 });
+
+export interface Env {
+  AI: any;
+  REVIEW_SESSIONS: DurableObjectNamespace;
+}
+
+app.post("/do/review", async (c) => {
+  const original = c.req;
+  const body = await original.json();
+
+  const { REVIEW_SESSIONS } = env(c);
+  const id = REVIEW_SESSIONS.idFromName("main");
+  const stub = REVIEW_SESSIONS.get(id);
+
+  // Rebuild the request for the DO
+  const forwardReq = new Request("http://dummy/", {
+    method: "POST",
+    headers: original.header(),  // copy headers
+    body: JSON.stringify(body),  // reuse parsed body
+  });
+
+  return stub.fetch(forwardReq);
+});
+
 
 // Export the Hono app
 export default app;

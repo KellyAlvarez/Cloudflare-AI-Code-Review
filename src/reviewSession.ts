@@ -6,7 +6,7 @@ interface ReviewRequest {
 export class ReviewSession {
   state: DurableObjectState;
 
-  constructor(state: DurableObjectState) {
+  constructor(state: DurableObjectState, env: Env) {
     this.state = state;
   }
 
@@ -15,7 +15,7 @@ export class ReviewSession {
 
     if (action === "getHistory") {
       const history = (await this.state.storage.get("history")) as any[] | null ?? [];
-      return Response.json(history);
+      return new Response(JSON.stringify(history));
     }
 
     if (action === "addEntry") {
