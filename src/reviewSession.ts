@@ -1,5 +1,5 @@
-interface ReviewRequest {
-  action: "getHistory" | "addEntry";
+export interface ReviewRequest {
+  action: "getHistory" | "addEntry" | "reset";
   payload?: any;
 }
 
@@ -23,6 +23,11 @@ export class ReviewSession {
       history.push(payload);
       await this.state.storage.put("history", history);
       return Response.json({ success: true });
+    }
+
+    if (action === "reset") {
+      await this.state.storage.put("history", []);
+      return Response.json({ success: true, message: "History cleared" });
     }
 
     return new Response("Unknown action", { status: 400 });
